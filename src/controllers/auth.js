@@ -2,6 +2,12 @@ const Joi = require('joi');
 const { user } = require('../../models');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const uuid = require('uuid');
+
+
+// const generateUUID = () => {
+//     return uuid.v4();
+//   };
 
 exports.register = async (req, res) => {
     // our validation schema here
@@ -22,6 +28,15 @@ exports.register = async (req, res) => {
         });
 
     try {
+        const uuid = uuid.v4();
+
+
+        let role = 'user';
+        
+        if (req.body.email === 'admin@example.com') {
+            role = 'admin';
+        }
+
         const isEmailExists = await user.findOne({
             where: {
                 email: req.body.email,
@@ -61,10 +76,14 @@ exports.register = async (req, res) => {
         // we hash password from request with salt
         const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
+        // const uuid = generateUUID();
+
         const newUser = await user.create({
             username: req.body.username,
             email: req.body.email,
             password: hashedPassword,
+            uuid,
+            role,
         });
         // console.log(newUser);
         // generate token
@@ -120,6 +139,13 @@ exports.login = async (req, res) => {
                 status: 'failed',
                 message: `username: ${req.body.username} not found`,
             });
+        }
+
+        if (req.body.uuid !== userExist.uuid) {
+            return res.status(404).send({
+                status: 'failed',
+                message: 'UUID is invalid'
+            })
         }
 
         // compare password between entered from client and from database
