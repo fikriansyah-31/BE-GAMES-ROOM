@@ -144,7 +144,7 @@ exports.login = async (req, res) => {
         if (req.body.uuid !== userExist.uuid) {
             return res.status(404).send({
                 status: 'failed',
-                message: 'UUID is invalid'
+                message: "UUID is invalid"
             })
         }
 
